@@ -51,8 +51,10 @@ if(isset($_POST['room_name'])){
     $user_id
     );
 
-    $stmt->execute();
-
+    if($stmt->execute()){
+        header("Location: manage_room.php?user_id=$user_id");
+        exit;
+    }
 }
 
 $rooms_stmt = $conn->prepare(

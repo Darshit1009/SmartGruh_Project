@@ -3,13 +3,40 @@
 require_once '../includes/auth.php';
 require_once '../config/db.php';
 
+if(!isset($_GET['room_id'])){
+    die("Room ID Missing");
+}
+
 $room_id = $_GET['room_id'];
+
+$room_stmt = $conn->prepare(
+"SELECT * FROM rooms WHERE id=?"
+);
+
+$room_stmt->bind_param(
+"i",
+$room_id
+);
+
+$room_stmt->execute();
+
+$room = $room_stmt
+->get_result()
+->fetch_assoc();
+
+if(!$room){
+    die("Room not found");
+}
+
+$owner_id = $room['user_id'];
 
 if(isset($_POST['switch_name'])){
 
-    $switch_name = trim($_POST['switch_name']);
+    $switch_name =
+    trim($_POST['switch_name']);
 
-    $switch_type = $_POST['switch_type'];
+    $switch_type =
+    $_POST['switch_type'];
 
     if($switch_name != ""){
 
@@ -30,6 +57,12 @@ if(isset($_POST['switch_name'])){
 
         $stmt->execute();
 
+        header(
+        "Location: switchboard.php?room_id=$room_id"
+        );
+
+        exit;
+
     }
 
 }
@@ -45,7 +78,10 @@ if(isset($_GET['delete'])){
 
     );
 
-    $delete_stmt->bind_param("i", $delete_id);
+    $delete_stmt->bind_param(
+    "i",
+    $delete_id
+    );
 
     $delete_stmt->execute();
 
@@ -65,11 +101,20 @@ $switches_stmt = $conn->prepare(
 
 );
 
-$switches_stmt->bind_param("i", $room_id);
+$switches_stmt->bind_param(
+"i",
+$room_id
+);
 
 $switches_stmt->execute();
 
-$switches = $switches_stmt->get_result();
+$switches =
+$switches_stmt->get_result();
+
+$back_link =
+($_SESSION['role'] == 'electrician')
+? "manage_room.php?user_id=$owner_id"
+: "user_dashboard.php";
 
 ?>
 
@@ -108,114 +153,216 @@ margin-top:40px;
 
 .switchboard{
 
-width:900px;
-min-height:520px;
+width:980px;
 
-background:#e5e7eb;
+min-height:600px;
 
-border-radius:20px;
+background:linear-gradient(
+180deg,
+#f8fafc,
+#e2e8f0
+);
 
-padding:30px;
+border-radius:35px;
+
+padding:40px;
 
 display:flex;
 flex-wrap:wrap;
-gap:25px;
+gap:35px;
 
-justify-content:flex-start;
 align-content:flex-start;
 
 box-shadow:
-0 10px 25px rgba(0,0,0,0.35);
+0 20px 50px rgba(0,0,0,0.45);
 
-border:10px solid #cbd5e1;
+border:14px solid #cbd5e1;
+
+position:relative;
+
+overflow:hidden;
+
+}
+
+.switchboard::before{
+
+content:"";
+
+position:absolute;
+
+top:0;
+left:0;
+right:0;
+bottom:0;
+
+border-radius:25px;
+
+box-shadow:
+inset 0 6px 16px rgba(255,255,255,0.9),
+inset 0 -6px 16px rgba(0,0,0,0.08);
+
+pointer-events:none;
 
 }
 
 .real-switch{
 
-width:130px;
-height:190px;
+width:150px;
 
-background:white;
+height:240px;
 
-border-radius:15px;
+background:linear-gradient(
+180deg,
+#ffffff,
+#f1f5f9
+);
 
-box-shadow:
-0 6px 16px rgba(0,0,0,0.25);
+border-radius:24px;
 
 display:flex;
 flex-direction:column;
 align-items:center;
-justify-content:flex-start;
 
-padding:15px;
-
-cursor:move;
+padding:18px;
 
 position:relative;
 
+cursor:move;
+
 transition:0.3s;
+
+border:1px solid #dbeafe;
+
+box-shadow:
+0 10px 20px rgba(0,0,0,0.18);
 
 }
 
 .real-switch:hover{
 
-transform:scale(1.03);
+transform:
+translateY(-8px)
+scale(1.03);
+
+box-shadow:
+0 16px 30px rgba(0,0,0,0.28);
 
 }
 
 .switch-btn{
 
-width:48px;
-height:95px;
+width:60px;
 
-background:#d1d5db;
+height:110px;
 
-border-radius:12px;
+border-radius:18px;
+
+background:linear-gradient(
+180deg,
+#d1d5db,
+#9ca3af
+);
+
+position:relative;
 
 cursor:pointer;
 
 transition:0.3s;
 
-margin-bottom:15px;
+margin-bottom:18px;
+
+box-shadow:
+inset 0 5px 10px rgba(255,255,255,0.8),
+inset 0 -5px 10px rgba(0,0,0,0.15),
+0 4px 8px rgba(0,0,0,0.18);
+
+}
+
+.switch-btn::before{
+
+content:"";
+
+position:absolute;
+
+top:12px;
+left:50%;
+
+transform:translateX(-50%);
+
+width:28px;
+height:8px;
+
+background:rgba(255,255,255,0.7);
+
+border-radius:10px;
 
 }
 
 .switch-btn.active{
 
-background:#22c55e;
+background:linear-gradient(
+180deg,
+#22c55e,
+#15803d
+);
 
 box-shadow:
-0 0 15px #22c55e;
+0 0 18px rgba(34,197,94,0.8),
+inset 0 4px 10px rgba(255,255,255,0.35);
 
 }
 
 .switch-icon{
 
-font-size:28px;
+width:78px;
+height:78px;
 
-margin-bottom:8px;
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:44px;
+
+border-radius:22px;
+
+background:linear-gradient(
+180deg,
+#ffffff,
+#e2e8f0
+);
+
+margin-bottom:14px;
+
+box-shadow:
+inset 0 4px 10px rgba(255,255,255,0.9),
+inset 0 -4px 10px rgba(0,0,0,0.08),
+0 4px 10px rgba(0,0,0,0.08);
 
 }
 
 .switch-type{
 
-font-size:20px;
-font-weight:bold;
+font-size:26px;
+
+font-weight:800;
 
 color:#0f172a;
+
+letter-spacing:1px;
+
+margin-bottom:8px;
 
 }
 
 .switch-name{
 
-margin-top:5px;
-
-font-size:14px;
+font-size:15px;
 
 color:#475569;
 
 text-align:center;
+
+line-height:22px;
 
 word-break:break-word;
 
@@ -228,29 +375,49 @@ position:absolute;
 top:10px;
 right:10px;
 
-background:red;
-
-color:white;
+width:30px;
+height:30px;
 
 border:none;
 
-width:25px;
-height:25px;
-
 border-radius:50%;
 
-font-size:14px;
+background:#ef4444;
+
+color:white;
+
+font-size:16px;
+
+font-weight:bold;
+
+display:flex;
+align-items:center;
+justify-content:center;
 
 cursor:pointer;
+
+transition:0.2s;
+
+box-shadow:
+0 4px 10px rgba(0,0,0,0.2);
+
+}
+
+.delete-btn:hover{
+
+background:#dc2626;
+
+transform:scale(1.1);
 
 }
 
 .form-area{
 
 display:flex;
+
 gap:15px;
 
-margin-bottom:25px;
+margin-bottom:35px;
 
 }
 
@@ -258,17 +425,78 @@ margin-bottom:25px;
 
 flex:2;
 
+height:58px;
+
+padding:0 20px;
+
+border:none;
+
+border-radius:16px;
+
+background:#1e293b;
+
+color:white;
+
+font-size:16px;
+
+outline:none;
+
 }
 
 .form-area select{
 
 flex:1;
 
+height:58px;
+
+padding:0 15px;
+
+border:none;
+
+border-radius:16px;
+
+background:#1e293b;
+
+color:white;
+
+font-size:16px;
+
+outline:none;
+
 }
 
 .form-area button{
 
 flex:1;
+
+height:58px;
+
+font-size:16px;
+
+font-weight:bold;
+
+border-radius:16px;
+
+}
+
+@media(max-width:1000px){
+
+.switchboard{
+
+width:100%;
+
+justify-content:center;
+
+padding:25px;
+
+}
+
+.real-switch{
+
+width:135px;
+height:225px;
+
+}
 
 }
 
@@ -286,7 +514,7 @@ SmartGruh
 
 <div>
 
-<a href="javascript:history.back()">
+<a href="<?php echo $back_link; ?>">
 Back
 </a>
 
@@ -301,8 +529,14 @@ Logout
 <div class="dashboard">
 
 <h1>
-Real Smart Switchboard
+
+<?php echo ucfirst($room['room_name']); ?>
+
+Switchboard
+
 </h1>
+
+<?php if($_SESSION['role'] == 'electrician'): ?>
 
 <div class="card">
 
@@ -340,10 +574,16 @@ AC
 </select>
 
 <button type="submit">
+
 Add Switch
+
 </button>
 
 </form>
+
+</div>
+
+<?php endif; ?>
 
 <div class="switchboard-container">
 
@@ -351,12 +591,13 @@ Add Switch
 
 <?php
 
-while($switch = $switches->fetch_assoc()) {
+while($switch =
+$switches->fetch_assoc()) {
 
 $icon = "💡";
 
 if($switch['switch_type'] == 'fan'){
-    $icon = "🌀";
+    $icon = "🪭";
 }
 elseif($switch['switch_type'] == 'tv'){
     $icon = "📺";
@@ -364,23 +605,36 @@ elseif($switch['switch_type'] == 'tv'){
 elseif($switch['switch_type'] == 'ac'){
     $icon = "❄️";
 }
+elseif($switch['switch_type'] == 'light'){
+    $icon = "💡";
+}
+
+$active_class =
+($switch['status'] == 'ON')
+? 'active'
+: '';
 
 ?>
 
 <div class="real-switch">
 
+<?php if($_SESSION['role']
+== 'electrician'): ?>
+
 <a href="switchboard.php?room_id=<?php echo $room_id; ?>&delete=<?php echo $switch['id']; ?>">
 
 <button class="delete-btn">
 
-X
+×
 
 </button>
 
 </a>
 
+<?php endif; ?>
+
 <div
-class="switch-btn"
+class="switch-btn <?php echo $active_class; ?>"
 onclick="toggleSwitch(this)">
 </div>
 
@@ -405,8 +659,6 @@ onclick="toggleSwitch(this)">
 </div>
 
 <?php } ?>
-
-</div>
 
 </div>
 

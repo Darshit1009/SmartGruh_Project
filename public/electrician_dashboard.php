@@ -40,6 +40,144 @@ href="../assets/style.css">
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
+<style>
+
+.user-grid{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(320px,1fr));
+
+gap:25px;
+
+margin-top:30px;
+
+}
+
+.user-card{
+
+background:#334155;
+
+padding:25px;
+
+border-radius:22px;
+
+box-shadow:
+0 8px 22px rgba(0,0,0,0.28);
+
+transition:0.3s;
+
+}
+
+.user-card:hover{
+
+transform:
+translateY(-6px);
+
+}
+
+.user-icon{
+
+font-size:60px;
+
+margin-bottom:18px;
+
+}
+
+.user-name{
+
+font-size:30px;
+
+font-weight:bold;
+
+margin-bottom:12px;
+
+color:white;
+
+}
+
+.user-email{
+
+font-size:16px;
+
+color:#cbd5e1;
+
+margin-bottom:12px;
+
+word-break:break-word;
+
+}
+
+.mqtt-grid{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(320px,1fr));
+
+gap:25px;
+
+margin-top:25px;
+
+}
+
+.mqtt-card{
+
+background:#334155;
+
+padding:28px;
+
+border-radius:22px;
+
+box-shadow:
+0 8px 22px rgba(0,0,0,0.28);
+
+transition:0.3s;
+
+}
+
+.mqtt-card:hover{
+
+transform:
+translateY(-5px);
+
+}
+
+.mqtt-icon{
+
+font-size:58px;
+
+margin-bottom:18px;
+
+}
+
+.mqtt-title{
+
+font-size:28px;
+
+font-weight:bold;
+
+margin-bottom:15px;
+
+color:white;
+
+}
+
+.mqtt-status{
+
+font-size:18px;
+
+font-weight:bold;
+
+color:#38bdf8;
+
+margin-top:10px;
+
+}
+
+</style>
+
 </head>
 
 <body>
@@ -71,72 +209,145 @@ Welcome
 <?php echo $_SESSION['name']; ?>
 </h2>
 
-<!-- MQTT CONTROL -->
+<!-- MQTT SECTION -->
 
 <div class="card">
 
-<h2>
+<h2 style="
+font-size:34px;
+margin-bottom:30px;
+">
+
 ESP32 MQTT Control
+
 </h2>
 
-<h3 id="status">
-Connecting...
-</h3>
+<div class="mqtt-grid">
 
-<br>
+<!-- MQTT STATUS CARD -->
+
+<div class="mqtt-card">
+
+<div class="mqtt-icon">
+📡
+</div>
+
+<div class="mqtt-title">
+
+MQTT Status
+
+</div>
+
+<div id="status"
+class="mqtt-status">
+
+Connecting...
+
+</div>
+
+</div>
+
+<!-- FAN CONTROL CARD -->
+
+<div class="mqtt-card">
+
+<div class="mqtt-icon">
+🪭
+</div>
+
+<div class="mqtt-title">
+
+Fan Control
+
+</div>
 
 <button onclick="turnOn()">
+
 Turn ON Fan
+
 </button>
 
 <br><br>
 
 <button onclick="turnOff()">
+
 Turn OFF Fan
+
 </button>
 
 </div>
 
-<br>
+</div>
+
+</div>
 
 <!-- USER CARDS -->
 
-<h2>
+<div class="card">
+
+<h2 style="font-size:34px;">
 User Room Management
 </h2>
 
+<p style="
+margin-bottom:30px;
+color:#cbd5e1;
+">
+
+Manage rooms and smart switchboards.
+
+</p>
+
+<div class="user-grid">
+
 <?php while($user = $users->fetch_assoc()) { ?>
 
-<div class="card">
+<div class="user-card">
 
-<h3>
+<div class="user-icon">
+👤
+</div>
+
+<div class="user-name">
+
 <?php echo $user['full_name']; ?>
-</h3>
 
-<p>
+</div>
+
+<div class="user-email">
+
 <?php echo $user['email']; ?>
-</p>
 
-<p>
+</div>
+
+<p style="
+margin-bottom:22px;
+color:#94a3b8;
+font-size:15px;
+">
+
 Role :
-<?php echo $user['role']; ?>
-</p>
+<?php echo ucfirst($user['role']); ?>
 
-<br>
+</p>
 
 <a href="manage_room.php?user_id=<?php echo $user['id']; ?>">
 
 <button>
+
 Manage Rooms
+
 </button>
 
 </a>
 
 </div>
 
-<br>
-
 <?php } ?>
+
+</div>
+
+</div>
 
 </div>
 
