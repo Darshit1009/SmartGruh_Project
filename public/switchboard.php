@@ -135,6 +135,8 @@ Smart Switchboard
 <link rel="stylesheet"
 href="../assets/style.css">
 
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
 <script src=
 "https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js">
 </script>
@@ -635,6 +637,7 @@ $active_class =
 
 <div
 class="switch-btn <?php echo $active_class; ?>"
+data-id="<?php echo $switch['id']; ?>"
 onclick="toggleSwitch(this)">
 </div>
 
@@ -668,43 +671,97 @@ onclick="toggleSwitch(this)">
 
 <script>
 
-interact('.real-switch').draggable({
+// MQTT Configuration from PHP
+const mqttConfig = {
+    host: 'wss://<?php echo $_ENV['MQTT_HOST']; ?>:8884/mqtt',
+    username: '<?php echo $_ENV['MQTT_USER']; ?>',
+    password: '<?php echo $_ENV['MQTT_PASS']; ?>',
+    topic: '<?php echo $_ENV['MQTT_TOPIC_LED']; ?>'
+};
 
-listeners: {
-
-move(event) {
-
-const target = event.target;
-
-const x =
-(parseFloat(
-target.getAttribute('data-x')
-) || 0)
-+ event.dx;
-
-const y =
-(parseFloat(
-target.getAttribute('data-y')
-) || 0)
-+ event.dy;
-
-target.style.transform =
-`translate(${x}px, ${y}px)`;
-
-target.setAttribute('data-x', x);
-
-target.setAttribute('data-y', y);
-
-}
-
-}
-
+const client = mqtt.connect(mqttConfig.host, {
+    username: mqttConfig.username,
+    password: mqttConfig.password
 });
 
-function toggleSwitch(element){
+client.on('connect', () => {
+    console.log("MQTT Connected via WebSockets");
+    // Subscribe to the topic to listen for changes from other sources (like HiveMQ console or ESP32)
+    client.subscribe(mqttConfig.topic, (err) => {
+        if (!err) {
+            console.log(`Subscribed to ${mqttConfig.topic}`);
+        }
+    });
+});
 
-element.classList.toggle('active');
+client.on('message', (topic, message) => {
+    const msg = message.toString().toUpperCase();
+    console.log(`Received message: ${msg} on topic: ${topic}`);
 
+    if (topic === mqttConfig.topic) {
+        // Find all switches (since they currently share one topic in this simple setup)
+        const switches = document.querySelectorAll('.switch-btn');
+        switches.forEach(sw => {
+            if (msg === 'ON') {
+                sw.classList.add('active');
+            } else if (msg === 'OFF') {
+                sw.classList.remove('active');
+            }
+        });
+    }
+});
+
+client.on('error', (err) => {
+    console.error("MQTT Error:", err);
+});
+
+interact('.real-switch').draggable({
+    listeners: {
+        move(event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+        }
+    }
+});
+
+function toggleSwitch(element) {
+    const switchId = element.getAttribute('data-id');
+    const currentState = element.classList.contains('active') ? 'ON' : 'OFF';
+    const newState = currentState === 'ON' ? 'OFF' : 'ON';
+
+    // 1. Instant UI Feedback
+    element.classList.toggle('active');
+
+    // 2. Instant MQTT Publish
+    console.log(`Publishing ${newState} to ${mqttConfig.topic}`);
+    client.publish(mqttConfig.topic, newState, { qos: 0, retain: false }, (error) => {
+        if (error) {
+            console.error('Publish error:', error);
+        }
+    });
+
+    // 3. Background Database Update
+    fetch('toggle_switch.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `switch_id=${switchId}&state=${newState}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(!data.success){
+            console.error('DB Update failed:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 </script>

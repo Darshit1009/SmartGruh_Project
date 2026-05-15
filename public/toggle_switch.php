@@ -1,41 +1,60 @@
 <?php
 
+session_start();
+
+require_once '../vendor/autoload.php';
 require_once '../config/db.php';
+require_once '../config/mqtt.php';
 
-$id = $_GET['id'];
+header('Content-Type: application/json');
 
-$stmt = $conn->prepare(
+if (!isset($_SESSION['user_id'])) {
 
-"SELECT * FROM switches
- WHERE id=?"
+    echo json_encode([
+        "success" => false,
+        "message" => "Unauthorized"
+    ]);
 
-);
+    exit;
+}
 
-$stmt->bind_param("i", $id);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
-$stmt->execute();
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid Request"
+    ]);
 
-$get = $stmt->get_result();
+    exit;
+}
 
-$switch = $get->fetch_assoc();
+$switch_id = isset($_POST['switch_id']) ? intval($_POST['switch_id']) : 0;
+$state = isset($_POST['state']) ? $_POST['state'] : 'OFF';
 
-$new_status =
-($switch['status'] == 'ON')
-? 'OFF'
-: 'ON';
+if ($switch_id <= 0) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid Switch ID"
+    ]);
+    exit;
+}
 
-$update_stmt = $conn->prepare(
+try {
+    // Update database
+    $stmt = $conn->prepare("UPDATE switches SET status=? WHERE id=?");
+    $stmt->bind_param("si", $state, $switch_id);
+    $stmt->execute();
 
-"UPDATE switches
- SET status=?
- WHERE id=?"
+    echo json_encode([
+        "success" => true,
+        "message" => "Status updated in Database",
+        "state" => $state
+    ]);
 
-);
+} catch (Exception $e) {
 
-$update_stmt->bind_param("si", $new_status, $id);
-
-$update_stmt->execute();
-
-echo "done";
-
-?>
+    echo json_encode([
+        "success" => false,
+        "message" => $e->getMessage()
+    ]);
+}

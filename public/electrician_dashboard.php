@@ -7,7 +7,11 @@ $env = parse_ini_file(__DIR__ . "/../.env");
 
 if($_SESSION['role'] != 'electrician'){
 
-    header("Location: dashboard.php");
+    if ($_SESSION['role'] == 'admin') {
+        header("Location: admin_dashboard.php");
+    } else {
+        header("Location: user_dashboard.php");
+    }
     exit;
 
 }

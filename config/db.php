@@ -1,14 +1,15 @@
 <?php
 
-$env = parse_ini_file(__DIR__ . "/../.env");
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
 $conn = new mysqli(
-
-    $env['DB_HOST'],
-    $env['DB_USER'],
-    $env['DB_PASS'],
-    $env['DB_NAME']
-
+    $_ENV['DB_HOST'],
+    $_ENV['DB_USER'],
+    $_ENV['DB_PASS'],
+    $_ENV['DB_NAME']
 );
 
 if ($conn->connect_error) {

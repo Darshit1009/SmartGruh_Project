@@ -38,9 +38,13 @@ if($result->num_rows > 0){
         $_SESSION['role']
             = $user['role'];
 
-        header(
-            "Location: ../public/dashboard.php"
-        );
+        if ($user['role'] == 'admin') {
+            header("Location: ../public/admin_dashboard.php");
+        } elseif ($user['role'] == 'electrician') {
+            header("Location: ../public/electrician_dashboard.php");
+        } else {
+            header("Location: ../public/user_dashboard.php");
+        }
 
         exit;
 
