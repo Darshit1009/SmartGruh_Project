@@ -1,5 +1,14 @@
 <?php
 require_once '../includes/auth.php';
+
+if ($_SESSION['role'] !== 'admin') {
+    if ($_SESSION['role'] === 'electrician') {
+        header("Location: electrician_dashboard.php");
+    } else {
+        header("Location: user_dashboard.php");
+    }
+    exit;
+}
 ?>
 
 <!DOCTYPE html>

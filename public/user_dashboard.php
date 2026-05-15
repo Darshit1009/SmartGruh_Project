@@ -1,5 +1,15 @@
 <?php
 require_once '../includes/auth.php';
+
+if ($_SESSION['role'] !== 'user') {
+    if ($_SESSION['role'] === 'admin') {
+        header("Location: admin_dashboard.php");
+    } else {
+        header("Location: electrician_dashboard.php");
+    }
+    exit;
+}
+
 require_once '../config/db.php';
 
 $user_id = $_SESSION['user_id'];

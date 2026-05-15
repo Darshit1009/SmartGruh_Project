@@ -1,55 +1,51 @@
 # SmartGruh - Smart Home Automation System
 
-SmartGruh is a web-based smart home automation dashboard that allows users to manage rooms and switches, and enables electricians to control devices via MQTT.
+SmartGruh is a modern, real-time home automation platform designed for users to monitor their homes and for electricians to manage infrastructure. It bridges the gap between traditional electrical systems and IoT.
 
-## Features
+## 🚀 Key Features
 
-- **User Authentication**: Secure login and signup with OTP verification (via PHPMailer).
-- **Role-based Access**: Different dashboards for Admin, User, and Electrician.
-- **Room Management**: Create and manage rooms.
-- **Switchboard**: Interactive switchboard with drag-and-drop support (via interact.js).
-- **MQTT Integration**: Real-time device control using HiveMQ and MQTT.js.
-- **Environment Configuration**: Secure credential management using `.env`.
+- **Multi-Role Dashboard**: Tailored experiences for **Users** (control), **Electricians** (setup & maintenance), and **Admins** (system overview).
+- **Interactive Switchboard**: 
+    - **Visual Control**: Aesthetic switches for Lights, Fans, ACs, and TVs.
+    - **Drag & Drop**: Customizable layout using `interact.js`.
+    - **Instant Feedback**: Real-time UI updates using `MQTT.js`.
+- **Real-Time IoT Synchronization**:
+    - **Hybrid Control**: Publish MQTT messages instantly from the browser for zero-latency control.
+    - **Two-Way Sync**: UI automatically reflects changes made from external sources (ESP32, HiveMQ Console, etc.) via MQTT subscriptions.
+    - **Persistent State**: Background AJAX synchronization ensures the database always reflects the current device state.
+- **Secure Authentication**: 
+    - Email-based signup/login.
+    - **OTP Verification**: Secure verification via PHPMailer for sensitive operations.
+- **Environment Management**: Securely managed credentials using `php-dotenv`.
 
-## Tech Stack
+## 🛠 Tech Stack
 
-- **Backend**: PHP (MySQLi)
-- **Frontend**: HTML, CSS, JavaScript (interact.js, MQTT.js)
-- **Email**: PHPMailer
-- **Database**: MySQL
+- **Backend**: PHP 8.x, MySQL.
+- **Frontend**: Vanilla CSS (Professional UI), JavaScript.
+- **IoT Protocol**: MQTT (HiveMQ Cloud).
+- **Libraries**:
+    - `MQTT.js`: Persistent WebSocket connections for instant IoT control.
+    - `interact.js`: For draggable switchboard elements.
+    - `PHPMailer`: For transactional emails and OTPs.
+    - `php-mqtt/client`: For backend MQTT capabilities.
 
-## Installation
+## 📦 Installation & Setup
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/your-username/smartgruh.git
-    cd smartgruh
-    ```
+1.  **Dependencies**: Run `composer install`.
+2.  **Database**: Import `smartgruh.sql` to MySQL.
+3.  **Environment**: Configure `.env` with:
+    - Database credentials.
+    - SMTP settings (for OTP).
+    - HiveMQ Cloud credentials (use port 8884 for WSS in JS).
 
-2.  **Install dependencies**:
-    ```bash
-    composer install
-    ```
+## 🔌 MQTT Architecture
 
-3.  **Database Setup**:
-    - Import `smartgruh.sql` into your MySQL database.
-    - Configure your database credentials in `.env` (copy from `.env.example`).
+- **Protocol**: WebSockets over SSL (WSS) on Port 8884.
+- **Broker**: HiveMQ Cloud.
+- **Logic**: 
+    - **Publish**: `client.publish('home/room/led', 'ON')`
+    - **Subscribe**: `client.subscribe('home/room/led')`
+    - **Sync**: Listener updates `.switch-btn.active` class instantly on incoming messages.
 
-4.  **Environment Configuration**:
-    - Create a `.env` file based on `.env.example` and provide your credentials:
-      - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`
-      - `MAIL_HOST`, `MAIL_USER`, `MAIL_PASS`, `MAIL_PORT`
-      - `MQTT_HOST`, `MQTT_USER`, `MQTT_PASS`
-
-5.  **Run the application**:
-    - Point your web server to the project directory.
-
-## Security
-
-- Prepared statements are used to prevent SQL injection.
-- Passwords are hashed using `password_hash()`.
-- Sensitive credentials are stored in `.env` and excluded from version control.
-
-## License
-
-This project is licensed under the MIT License.
+---
+Developed as a robust solution for modern smart home management.
